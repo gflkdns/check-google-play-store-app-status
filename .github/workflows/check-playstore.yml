@@ -9,6 +9,14 @@ jobs:
   check_app_status:
     runs-on: ubuntu-latest
     steps:
+    
+    - name: Install google-play-scraper
+      run: |
+            sudo apt-get update
+            sudo apt-get install -y nodejs npm
+            sudo npm install -g google-play-scraper
+
+    
     - name: Load package names
       run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
 
