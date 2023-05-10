@@ -1,0 +1,23 @@
+name: Check Play Store
+on:
+  schedule:
+    - cron: '0 * * * *'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          npm install -g google-play-scraper
+          sudo apt-get install jq
+
+      - name: Check app status
+        run: |
+          PACKAGES="com.example.app1 com.example.app2 com.example.app3"
+          for package in $PACKAGES; do
+            status=$(google-play-scraper $package | jq '.[0].status')
+            echo "$package: $status"
+          done
+
+      - name: Complete workflow
+        run: echo "App status check complete."
