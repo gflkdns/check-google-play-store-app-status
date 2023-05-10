@@ -1,7 +1,7 @@
 name: Check Play Store
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '* * * * *'
 jobs:
   check:
     runs-on: ubuntu-latest
