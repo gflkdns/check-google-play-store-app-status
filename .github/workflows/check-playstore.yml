@@ -1,29 +1,30 @@
-name: Check Play Store
-on:
-  schedule:
-    - cron: '* * * * *'
+name: Check app status
+
+on: workflow_dispatch
+
+env:
+  PACKAGES: "com.cacostar.evilprank com.example.app2 com.example.app3"
+
 jobs:
-  check:
+  check_app_status:
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y nodejs
-          sudo apt-get install -y npm
-          npm install -g google-play-scraper
-          sudo apt-get install -y jq
+    - name: Load package names
+      run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
 
-      - name: Load package names
-        run: |
-          PACKAGES="com.cacostar.evilprank com.example.app2 com.example.app3"
+    - name: Check google-play-scraper command
+      run: |
+        which google-play-scraper
+        google-play-scraper --version
 
-      - name: Check app status
-        run: |
-          for package in $PACKAGES; do
-            status=$(google-play-scraper $package | jq '.[0].status')
-            echo "$package: $status"
-          done
-
-      - name: Complete workflow
-        run: echo "App status check complete."
+    - name: Check app status
+      run: |
+        for package in $PACKAGES; do
+          status=$(google-play-scraper $package | jq -r '.[0].status')
+          if [[ "$status" != "SUCCESS" ]]; then
+            echo "Error: $package is not published. Status: $status"
+          else
+            echo "Package: $package"
+            echo "Status: $status"
+          fi
+        done
