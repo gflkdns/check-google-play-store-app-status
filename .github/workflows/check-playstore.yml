@@ -16,7 +16,7 @@ jobs:
 
       - name: Load package names
         run: |
-          PACKAGES="com.example.app1 com.example.app2 com.example.app3"
+          PACKAGES="com.cacostar.evilprank com.example.app2 com.example.app3"
 
       - name: Check app status
         run: |
