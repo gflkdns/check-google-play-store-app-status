@@ -4,30 +4,30 @@ on:
   workflow_dispatch
 
 env:
-  PACKAGES: "com.cacostar.evilprank com.example.app2 com.example.app3"
+  PACKAGES: "com.example.app1 com.example.app2 com.example.app3"
 
 jobs:
   check_app_status:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Java
-        uses: actions/setup-java@v1
-        with:
-          java-version: '11'
-      
-      - name: Clone android-market-api
-        run: git clone https://code.google.com/archive/p/android-market-api.git
-
-      - name: Build android-market-api
+      - name: Install google-play-crawler
         run: |
-          cd android-market-api
-          ./gradlew shadowJar
-      
-      - name: Load package names
-        run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
+          sudo apt-get update
+          sudo apt-get install -y nodejs npm
+          sudo npm install -g google-play-crawler
 
       - name: Check app status
         run: |
           for package in $PACKAGES; do
-            java -jar android-market-api/build/libs/android-market-api-all.jar -e "$GOOGLE_EMAIL" -p "$GOOGLE_PASSWORD" -q $package -o json | jq -r 'if .id then "Package: \(.packageName)\nStatus: \(.versionData.uploadStatus)\nLast Updated: \(.versionData.uploadDate)\nVersion: \(.versionData.versionString)" else "Error: Package not found" end'
+            status=$(google-play-crawler -p $package | jq -r '.status')
+            if [[ "$status" != "OK" ]]; then
+              echo "Error: $package is not published. Status: $status"
+            else
+              last_update=$(google-play-crawler -p $package | jq -r '.lastUpdated')
+              version=$(google-play-crawler -p $package | jq -r '.version')
+              echo "Package: $package"
+              echo "Status: $status"
+              echo "Last Updated: $last_update"
+              echo "Version: $version"
+            fi
           done
