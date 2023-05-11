@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     
+    - name: check node version
+      run: node --version
+    
     - name: Install google-play-scraper
       run: |
             sudo apt-get update
