@@ -14,7 +14,9 @@ jobs:
       run: |
             sudo apt-get update
             sudo apt-get install -y nodejs npm
+            sudo npm install -g npm@9.6.6
             sudo npm install -g google-play-scraper
+            
 
     
     - name: Load package names
