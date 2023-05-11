@@ -1,33 +1,36 @@
 name: Check app status
 
-on:
-  workflow_dispatch
+on: workflow_dispatch
 
 env:
-  PACKAGES: "com.example.app1 com.example.app2 com.example.app3"
+  PACKAGES: "com.cacostar.evilprank com.example.app2 com.example.app3"
 
 jobs:
   check_app_status:
     runs-on: ubuntu-latest
     steps:
-      - name: Install google-play-crawler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y nodejs npm
-          sudo npm install -g google-play-crawler
+    
+    - name: Load package names
+      run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
 
-      - name: Check app status
-        run: |
-          for package in $PACKAGES; do
-            status=$(google-play-crawler -p $package | jq -r '.status')
-            if [[ "$status" != "OK" ]]; then
-              echo "Error: $package is not published. Status: $status"
-            else
-              last_update=$(google-play-crawler -p $package | jq -r '.lastUpdated')
-              version=$(google-play-crawler -p $package | jq -r '.version')
-              echo "Package: $package"
-              echo "Status: $status"
-              echo "Last Updated: $last_update"
-              echo "Version: $version"
-            fi
-          done
+    - name: Check app status
+      run: |
+        for package in $PACKAGES; do
+          # Get the app details page HTML
+          html=$(curl -sL "https://play.google.com/store/apps/details?id=$package")
+
+          # Parse the HTML to get the app status, update time, and version
+          status=$(echo "$html" | grep -oP '(?<=data-test-server-message=")Published(.*?)(?=")')
+          updated=$(echo "$html" | grep -oP '(?<=class="htlgb"><span class="htlgb">Updated</span></div><div class="IQ1z0d"><span class="htlgb">)(.*?)(?=</span></div></div><div class="xSyT2c">)')
+          version=$(echo "$html" | grep -oP '(?<=class="BgcNfc">)(.*?)(?=</span><span class="htlgb">)')
+
+          # Print the app status, update time, and version
+          if [[ "$status" == "Published" ]]; then
+            echo "Package: $package"
+            echo "Status: $status"
+            echo "Last updated: $updated"
+            echo "Version: $version"
+          else
+            echo "Error: $package is not published. Status: $status"
+          fi
+        done
