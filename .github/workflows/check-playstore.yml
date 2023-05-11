@@ -1,6 +1,7 @@
 name: Check app status
 
-on: workflow_dispatch
+on:
+  workflow_dispatch
 
 env:
   PACKAGES: "com.cacostar.evilprank com.example.app2 com.example.app3"
@@ -9,41 +10,24 @@ jobs:
   check_app_status:
     runs-on: ubuntu-latest
     steps:
-    
-    - name: check node version
-      run: node --version
-    
-    - name: Install google-play-scraper
-      run: |
-            sudo apt-get update
-            sudo apt-get install -y nodejs npm
-            sudo npm install -g npm@9.6.6
-            sudo npm install -g google-play-scraper
-    - name: Check google-play-scraper installation
-      run: |
-          which google-play-scraper || (sudo apt-get update && sudo apt-get install -y nodejs npm && sudo npm install -g google-play-scraper)
+      - name: Install Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
       
-    - name: Check google-play-scraper command in PATH
-      run: |
-          echo $PATH | grep -q "$(npm prefix -g)/bin" && echo "google-play-scraper is in PATH" || (echo "google-play-scraper is not in PATH" && echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc)
-    - name: Check google-play-scraper command path
-      run: |
-          echo $PATH | tr : '\n' | grep "$(npm prefix -g)/bin"
-    
-    - name: Load package names
-      run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
+      - name: Clone android-market-api
+        run: git clone https://github.com/lichao315/android-market-api.git
 
-    - name: Check google-play-scraper command
-      run: google-play-scraper --version
+      - name: Build android-market-api
+        run: |
+          cd android-market-api
+          ./gradlew shadowJar
+      
+      - name: Load package names
+        run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
 
-    - name: Check app status
-      run: |
-        for package in $PACKAGES; do
-          status=$(google-play-scraper $package | jq -r '.[0].status')
-          if [[ "$status" != "SUCCESS" ]]; then
-            echo "Error: $package is not published. Status: $status"
-          else
-            echo "Package: $package"
-            echo "Status: $status"
-          fi
-        done
+      - name: Check app status
+        run: |
+          for package in $PACKAGES; do
+            java -jar android-market-api/build/libs/android-market-api-all.jar -e "$GOOGLE_EMAIL" -p "$GOOGLE_PASSWORD" -q $package -o json | jq -r 'if .id then "Package: \(.packageName)\nStatus: \(.versionData.uploadStatus)\nLast Updated: \(.versionData.uploadDate)\nVersion: \(.versionData.versionString)" else "Error: Package not found" end'
+          done
