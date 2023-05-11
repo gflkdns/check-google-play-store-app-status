@@ -26,7 +26,9 @@ jobs:
     - name: Check google-play-scraper command in PATH
       run: |
           echo $PATH | grep -q "$(npm prefix -g)/bin" && echo "google-play-scraper is in PATH" || (echo "google-play-scraper is not in PATH" && echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc)
-
+    - name: Check google-play-scraper command path
+      run: |
+          echo $PATH | tr : '\n' | grep "$(npm prefix -g)/bin"
     
     - name: Load package names
       run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
