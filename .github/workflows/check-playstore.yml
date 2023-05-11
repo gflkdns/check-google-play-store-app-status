@@ -16,7 +16,7 @@ jobs:
           java-version: '11'
       
       - name: Clone android-market-api
-        run: git clone https://github.com/lichao315/android-market-api.git
+        run: git clone https://code.google.com/archive/p/android-market-api.git
 
       - name: Build android-market-api
         run: |
