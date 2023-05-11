@@ -19,7 +19,13 @@ jobs:
             sudo apt-get install -y nodejs npm
             sudo npm install -g npm@9.6.6
             sudo npm install -g google-play-scraper
-            
+    - name: Check google-play-scraper installation
+      run: |
+          which google-play-scraper || (sudo apt-get update && sudo apt-get install -y nodejs npm && sudo npm install -g google-play-scraper)
+      
+    - name: Check google-play-scraper command in PATH
+      run: |
+          echo $PATH | grep -q "$(npm prefix -g)/bin" && echo "google-play-scraper is in PATH" || (echo "google-play-scraper is not in PATH" && echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc)
 
     
     - name: Load package names
