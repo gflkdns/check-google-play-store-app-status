@@ -26,9 +26,7 @@ jobs:
       run: echo "PACKAGES=\"$PACKAGES\"" >> $GITHUB_ENV
 
     - name: Check google-play-scraper command
-      run: |
-        which google-play-scraper
-        google-play-scraper --version
+      run: google-play-scraper --version
 
     - name: Check app status
       run: |
